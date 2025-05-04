@@ -1,0 +1,15 @@
+Ansible modules are reusable, standalone units of code used to perform tasks in playbooks. They are the core building blocks of Ansible's automation. 
+Each module abstracts a specific system task (like managing packages, copying files, restarting services, etc.) in an idempotent way.
+
+🔹 Commonly Used Ansible Modules
+Category           	Module Name  	                                              Description
+System             	user, group, hostname, timezone	                    Manage users, groups, and system properties
+Packages	          yum, apt, dnf, package                            	Install/update/remove software packages
+Files	              copy, template, file, fetch                        	Manage files and directories
+Services	          service, systemd	                                  Control services
+Command            	command, shell, raw	                                Run shell commands (less idempotent)
+Networking	        firewalld, iptables, nmcli	                        Manage network/firewall
+Utilities          	debug, set_fact, stat, assert, wait_for	            Logic, conditionals, facts, waits
+Cloud/Infra	        ec2, azure_rm, gcp_compute, k8s	                    Provision/manage cloud resources
+Filesystems	        mount, parted, lvol, filesystem                   	Disk and partition management
+
