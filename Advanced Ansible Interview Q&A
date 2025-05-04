@@ -1,0 +1,99 @@
+Great! Here are some advanced Ansible interview questions and answers, particularly useful for experienced Linux system administrators or DevOps roles:
+11. What is the difference between a role and a playbook in Ansible?
+A playbook is a list of tasks.
+A role is a structured way to organize those tasks, variables, handlers, files, and templates, making reuse and modularization easier.
+
+Example:
+roles/
+├── apache/
+│   ├── tasks/
+│   │   └── main.yml
+│   ├── templates/
+│   └── defaults/
+You can include a role in a playbook like this:
+- hosts: webservers
+  roles:
+    - apache
+
+12. What are facts in Ansible? How do you use them?
+Answer:
+Facts are system information gathered from managed hosts (e.g., IPs, OS, memory). You can use them in conditionals or templates.
+
+Example:
+- debug:
+    msg: "This host has {{ ansible_memtotal_mb }} MB of RAM"
+To gather facts manually:
+- setup:
+
+13. What is dynamic inventory and how is it used?
+Answer:
+Dynamic inventory pulls host info from external sources (cloud APIs, CMDB, etc.) instead of static hosts file.
+
+Example: For AWS EC2
+ansible-inventory -i aws_ec2.yaml --graph
+It uses a plugin like amazon.aws.aws_ec2.
+
+14. How do you use Jinja2 templating in Ansible?
+Answer:
+Jinja2 is used in templates and playbooks to dynamically render content.
+
+Example in a task:
+- name: Create config
+  template:
+    src: app.conf.j2
+    dest: /etc/app/app.conf
+
+Template:
+port={{ app_port }}
+hostname={{ inventory_hostname }}
+
+15. How do you ensure parallel execution or control concurrency?
+Answer:
+Use serial, forks, or throttle.
+
+Example:
+- hosts: webservers
+  serial: 5
+Or set in ansible.cfg:
+[defaults]
+forks = 10
+
+16. How can you retry only failed hosts from a previous run?
+Answer:
+After a failed run, Ansible creates a .retry file:
+ansible-playbook site.yml --limit @site.retry
+
+17. How do you pass variables at runtime?
+Answer:
+
+From command line:
+ansible-playbook site.yml -e "env=prod version=2.0"
+
+From files:
+ansible-playbook site.yml -e @vars.yml
+
+18. What is a callback plugin in Ansible?
+Answer:
+Callback plugins customize output or send results to external systems (e.g., Slack, JSON file, log system).
+
+To enable:
+[defaults]
+callback_whitelist = profile_tasks, json
+
+19. What’s the difference between include and import in Ansible?
+import_*: statically included at playbook parsing time (always executed).
+include_*: dynamically included at runtime (can be conditional).
+
+Example:
+- include_tasks: tasks.yml   # Conditional allowed
+- import_tasks: tasks.yml    # Always included
+
+20. How would you implement patching with rollback support in Ansible?
+Snapshot the system or track package versions before update
+Store list of upgraded packages
+Create rollback script or use yum history
+
+Example:
+- shell: yum history rollback last
+Or custom log file to reverse actions.
+
