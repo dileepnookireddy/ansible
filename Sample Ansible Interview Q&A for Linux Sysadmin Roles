@@ -1,0 +1,86 @@
+1. What is Ansible? Why is it used in Linux administration?
+Ansible is an open-source configuration management, application deployment, and automation tool. It's agentless and uses SSH for communication.
+For Linux admins, it simplifies tasks like software updates, user management, and enforcing configuration consistency across servers.
+
+2. What does “idempotency” mean in Ansible?
+Idempotency ensures that running a playbook multiple times will have the same result as running it once. For example, installing a package will not reinstall it if it's already installed.
+
+3. How do you check if the last task succeeded or failed?
+Ansible automatically tracks task success/failure using return codes. You can also check using:
+- name: Check result
+  debug:
+    var: result.rc
+Or use failed_when and changed_when conditions.
+
+4. How do you reboot a server only if the kernel was updated?
+- name: Check current kernel
+  command: uname -r
+  register: running_kernel
+
+- name: Get latest installed kernel
+  shell: rpm -q --last kernel | head -n1 | awk '{print $1}' | sed 's/kernel-//'
+  register: latest_kernel
+
+- name: Reboot only if kernel changed
+  reboot:
+    msg: "Rebooting due to kernel update"
+  when: running_kernel.stdout != latest_kernel.stdout
+
+5. How do you manage sensitive variables in Ansible?
+Use Ansible Vault:
+ansible-vault encrypt secrets.yml
+ansible-playbook site.yml --ask-vault-pass
+
+6. How would you structure a playbook for patching and validation?
+Answer:
+
+Pre-check → Patch → Reboot (if needed) → Post-check → Compare
+
+Sample steps:
+- name: Run pre-check script
+  shell: /root/pre.sh
+  register: precheck
+
+- name: Apply patches
+  yum:
+    name: '*'
+    state: latest
+
+- name: Run post-check script
+  shell: /root/post.sh
+
+7. What is the difference between shell, command, and script modules?
+command: safest, no shell features.
+shell: allows shell features (like pipes, redirects).
+script: runs a local script on remote nodes.
+
+8. How do you apply tasks to only one group in the inventory?
+- hosts: db_servers
+  tasks:
+    - name: Install MariaDB
+      yum:
+        name: mariadb
+        state: present
+
+9. What are handlers in Ansible?
+Handlers run only if notified. Useful for restarting services after config changes.
+- name: Update config
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+  notify: Restart nginx
+
+handlers:
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted
+
+10. How do you test an Ansible playbook safely?
+Use --check (dry run)
+Use --diff to see changes
+Limit scope with --limit or tags
+
+📁 Bonus: Real-World Task to Explain in Interviews
+“We automated OS patching across 300 RHEL servers using Ansible. The playbook included pre-checks, controlled reboot only if the kernel changed, and post-check comparisons.
+We used Ansible Tower for scheduling and visibility.”
