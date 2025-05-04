@@ -1,0 +1,82 @@
+---
+- hosts: all
+  remote_user: root
+  tasks:
+    - name: Register RHEL systems (7/8/9)
+      command: subscription-manager register --org="T-Systems-Org" --activationkey="{{ activationkey }}" --force
+      vars:
+        activationkey: >-
+          {{ 'cube79' if ansible_distribution_major_version == '7' else
+             'cube-rhel810' if ansible_distribution_major_version == '8' else
+             'cube-rhel95' }}
+      args:
+        creates: /etc/pki/consumer   # Skip if already registered (idempotent)
+
+    - name: Copy scripts only if changed
+      copy:
+        src: '{{ item }}'
+        dest: /root/
+        mode: '0755'
+        force: no
+      loop:
+        - pre-check-script.sh
+        - post-check-script.sh
+        - compare.sh
+
+    - name: Run pre-check script
+      shell: /root/pre-check-script.sh
+      register: precheck_output
+      changed_when: false  # Don't mark task as changed
+
+    - name: Perform system patching
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Get current running kernel
+      command: uname -r
+      register: running_kernel
+      changed_when: false
+
+    - name: Get latest installed kernel
+      shell: "rpm -q --last kernel | head -1 | awk '{print $1}' | sed 's/kernel-//'"
+      register: installed_kernel
+      changed_when: false
+
+    - name: Check if reboot is needed
+      set_fact:
+        reboot_required: "{{ running_kernel.stdout != installed_kernel.stdout }}"
+
+    - name: Reboot only if needed
+      reboot:
+        msg: "Rebooting machine in 5 seconds"
+        connect_timeout: 5
+        reboot_timeout: 600
+        test_command: whoami
+      when: reboot_required
+
+    - name: Wait for connection (after reboot)
+      wait_for_connection:
+        timeout: 180
+      when: reboot_required
+
+    - name: Run post-check script
+      shell: /root/post-check-script.sh
+      register: postcheck_output
+      changed_when: false
+
+    - name: Run comparison
+      shell: /root/compare.sh > /tmp/compare-output; /root/compare.sh
+      register: final
+      changed_when: false
+
+    - name: Show comparison output
+      debug:
+        var: final.stdout_lines
+
+    - name: Ensure post-execution file exists (only if missing)
+      copy:
+        content: ""
+        dest: /shelltools/ansible-patching-automation/list
+        force: no
+      delegate_to: localhost
