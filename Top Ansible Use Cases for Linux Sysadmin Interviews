@@ -75,4 +75,14 @@ Run post-check scripts and compare outputs.
 Apply different tasks based on group membership (e.g., DB servers vs. App servers).
 
 
+🧠 Interview Tips:
+Be ready to explain idempotency, handlers, facts, and Ansible vault.
+
+Mention using roles and tags for structuring large playbooks.
+
+Discuss how you test playbooks safely (e.g., --check, --limit, --diff).
+
+Know how to write a custom inventory file and use variables (group_vars, host_vars).
+
+
 
