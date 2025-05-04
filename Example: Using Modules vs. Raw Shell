@@ -1,0 +1,20 @@
+ Example: Using Modules vs. Raw Shell
+❌ Not Idempotent (Shell):
+- name: Create directory (bad way)
+  shell: mkdir /opt/mydir
+✅ Idempotent (Module):
+- name: Create directory (good way)
+  file:
+    path: /opt/mydir
+    state: directory
+    mode: '0755'
+--------------
+ Tips for Using Modules Effectively
+Always prefer modules over shell/command.
+
+Check Ansible Docs for available modules.
+
+Use --check mode (ansible-playbook playbook.yml --check) to test idempotency.
+
+Use register + when for conditional logic based on module results.
+---------------------
