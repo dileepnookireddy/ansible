@@ -1,0 +1,78 @@
+1. Patch Management / OS Updates
+---------------------------------
+Automate updating all packages across multiple servers.
+- name: Apply latest patches
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+2. User Management
+Create or remove users in bulk.
+- name: Ensure a user exists
+  user:
+    name: devops
+    state: present
+    groups: wheel
+    shell: /bin/bash
+3. Service Management
+Enable, start, or stop critical services (like sshd, httpd, nginx, etc.)
+- name: Start and enable Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true
+4. File Distribution / Configuration Management
+Distribute config files using templates (Jinja2).
+- name: Deploy Nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0644'
+  notify: restart nginx
+5. Scheduled Tasks (Cron)
+Automate cron jobs creation.
+- name: Backup cron job
+  cron:
+    name: "daily backup"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/backup.sh"
+6. Reboot Handling with Kernel Check
+Only reboot if kernel was updated.
+- name: Check current kernel
+  command: uname -r
+  register: current_kernel
+
+- name: Get installed kernel
+  command: rpm -q --last kernel | head -n1 | awk '{print $1}'
+  register: latest_kernel
+
+- name: Reboot if kernel is updated
+  reboot:
+    msg: "Reboot due to kernel update"
+  when: current_kernel.stdout not in latest_kernel.stdout
+7. Mount NFS or Disks
+Mount and persist NFS shares or volumes.
+- name: Mount NFS share
+  mount:
+    path: /mnt/data
+    src: server:/data
+    fstype: nfs
+    opts: rw
+    state: mounted
+8. System Hardening & Security
+Disable root login via SSH, set password policies, etc.
+
+9. Post-Patching Validation
+Run post-check scripts and compare outputs.
+- name: Run post-check
+  shell: /root/post-check.sh
+  register: post_check_output
+10. Inventory Group-Based Automation
+Apply different tasks based on group membership (e.g., DB servers vs. App servers).
+
+
+
