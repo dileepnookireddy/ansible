@@ -1,0 +1,94 @@
+Ansible Vault is a feature in Ansible that allows you to encrypt sensitive data, like passwords, API tokens, SSH keys, etc., so that it can be safely stored in version control systems like Git.
+
+🔐 Encrypt a File:
+--------------
+ansible-vault encrypt secrets.yml     ###You'll be prompted to set a password to encrypt the file.
+
+🔓 Decrypt a File:
+-----------------
+ansible-vault decrypt secrets.yml
+
+📝 Edit an Encrypted File
+--------------------------
+ansible-vault edit secrets.yml     ###This will decrypt, open in editor, and re-encrypt when saved.
+
+📄 View Encrypted File Contents
+-------------------------------
+ansible-vault view secrets.yml
+
+🗝️ Using Vault in a Playbook
+-----------------------------
+If your playbook or variables reference encrypted files, use: 
+ansible-playbook playbook.yml --ask-vault-pass
+Or use a vault password file: 
+ansible-playbook playbook.yml --vault-password-file ~/.vault_pass.txt
+
+🔑 Encrypting Variables Inside Files
+-------------------------------------
+You can encrypt only certain variables:
+ansible-vault encrypt_string 'SuperSecretPassword' --name 'db_password'
+##Output example:
+db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          6237356339333438653363646436373735636439343037353765336633623834
+
+⚙️ Common Use Cases
+✅ Storing sensitive vars (passwords, tokens, keys).
+✅ Securing inventory files with sensitive data.
+✅ Keeping secrets safe in Git repositories.
+
+------------------------------------------------------
+Great! Let’s go through a real-world Ansible Vault example step-by-step — encrypting secrets for a DevOps deployment (like storing a database password securely).
+------------------------------------------------------
+✅ Step-by-Step: Ansible Vault Example
+🎯 Goal:
+We'll create an encrypted secrets file with a database password, and use it in an Ansible playbook.
+
+🔹 Step 1: Create and Encrypt the Secrets File
+ansible-vault encrypt secrets.yml
+It will ask for a password to encrypt the file.
+
+Now edit it securely:
+ansible-vault edit secrets.yml
+
+Add content like:
+db_user: admin
+db_password: myS3cretPassw0rd
+
+When you save & exit, it gets encrypted.
+
+🔹 Step 2: Example Playbook Using Vault
+Create a playbook called deploy.yml:
+
+---
+- name: Example playbook using Ansible Vault secrets
+  hosts: localhost
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Show DB Credentials (Demo Purpose)
+      debug:
+        msg: "Connecting to DB with user '{{ db_user }}' and password '{{ db_password }}'"
+
+🔹 Step 3: Run the Playbook (With Vault Password)
+To run the playbook and decrypt secrets:
+
+ansible-playbook deploy.yml --ask-vault-pass
+
+Or use a vault password file for automation:
+
+ansible-playbook deploy.yml --vault-password-file ~/.vault_pass.txt
+
+🔹 Step 4: Example Output
+TASK [Show DB Credentials (Demo Purpose)] 
+ok: [localhost] => {
+    "msg": "Connecting to DB with user 'admin' and password 'myS3cretPassw0rd'"
+}
+
+🧠 Best Practices
+Never hardcode sensitive data in playbooks.
+Use --vault-password-file for automation in CI/CD.
+Store secrets encrypted in Git safely.
+
+
