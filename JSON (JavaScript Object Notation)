@@ -290,4 +290,126 @@ ansible-inventory -i ./live_inventory.py --graph
     4. Fully compatible with Ansible Dynamic Inventory.
 
 ---------------------------------------------------------------------
+Now let's build a Dynamic Inventory Script for AWS EC2 Instances using boto3 (AWS SDK for Python).
+
+✅ Goal: Live EC2 Dynamic Inventory
+    1. Dynamically discover EC2 instances.
+    2. Group them by tags (e.g., Environment: dev/stage/prod).
+    3. Output valid JSON for Ansible.
+    4. Ready for DevOps automation.
+
+✅ Pre-requisites
+
+Install AWS SDK for Python:
+pip install boto3
+
+Configure AWS credentials:
+aws configure  # Provide Access Key, Secret Key, Region, Output format (json)
+Or use an IAM role if on EC2.
+
+✅ Step-by-Step: EC2 Dynamic Inventory Script
+
+🔹 1. Create Script: aws_ec2_inventory.py
+
+#!/usr/bin/env python3
+import boto3
+import json
+import sys
+
+# Initialize EC2 client
+ec2 = boto3.client('ec2')
+
+# Describe running EC2 instances
+response = ec2.describe_instances(
+    Filters=[{'Name': 'instance-state-name', 'Values': ['running']}]
+)
+
+# Prepare inventory structure
+inventory = {
+    'all': {
+        'hosts': [],
+        'vars': {
+            'ansible_user': 'ec2-user'  # Default user, change as needed
+        }
+    },
+    '_meta': {
+        'hostvars': {}
+    }
+}
+
+# Populate inventory with instance data
+for reservation in response['Reservations']:
+    for instance in reservation['Instances']:
+        private_ip = instance.get('PrivateIpAddress')
+        if private_ip:
+            inventory['all']['hosts'].append(private_ip)
+
+            # Extract tags (convert list of dicts to key-value)
+            tags = {tag['Key']: tag['Value'] for tag in instance.get('Tags', [])}
+
+            # Add host variables (custom)
+            inventory['_meta']['hostvars'][private_ip] = {
+                'instance_id': instance['InstanceId'],
+                'instance_type': instance['InstanceType'],
+                'env': tags.get('Environment', 'unknown')
+            }
+
+# Output for Ansible
+if len(sys.argv) == 2 and sys.argv[1] == '--list':
+    print(json.dumps(inventory, indent=2))
+else:
+    print(json.dumps({}))
+
+✅ 2. Make Script Executable
+chmod +x aws_ec2_inventory.py
+
+✅ 3. Run & Test
+./aws_ec2_inventory.py --list
+
+✅ Expected Output (Example)
+
+{
+  "all": {
+    "hosts": [
+      "10.0.1.12",
+      "10.0.1.13"
+    ],
+    "vars": {
+      "ansible_user": "ec2-user"
+    }
+  },
+  "_meta": {
+    "hostvars": {
+      "10.0.1.12": {
+        "instance_id": "i-0123456789abcdef0",
+        "instance_type": "t2.micro",
+        "env": "dev"
+      },
+      "10.0.1.13": {
+        "instance_id": "i-0abcdef1234567890",
+        "instance_type": "t2.medium",
+        "env": "prod"
+      }
+    }
+  }
+}
+
+✅ 4. Use with Ansible
+ansible-inventory -i ./aws_ec2_inventory.py --graph
+
+✅ Bonus:
+    1. You can group by tags (like Environment) for dynamic grouping.
+    2. You can filter by Security Groups, VPCs, Subnets, etc.
+    3. Perfect for auto-scaling environments.
+
+✅ Summary
+    1. Live EC2 discovery using boto3.
+    2. Fully dynamic Ansible Inventory.
+    3. Useful in GitOps, CI/CD, auto-scaling scenarios.
+    4. No manual inventory files needed.
+
+-------------------------------------------------------------
+
+Now let’s do it the official & production-ready way using the Ansible EC2 Dynamic Inventory Plugin (no custom scripts, just YAML config).
+
 
