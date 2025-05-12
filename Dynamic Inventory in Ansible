@@ -1,0 +1,11 @@
+✅ What is Dynamic Inventory in Ansible?
+
+Static Inventory = Hardcoded list of hosts in hosts or inventory file.
+Dynamic Inventory = Inventory generated dynamically from a source like:
+
+Cloud Providers (AWS, Azure, GCP)
+Kubernetes
+Databases, CMDB
+Custom scripts or APIs
+
+🔹 Useful when your infrastructure is dynamic, like in Cloud/DevOps.
