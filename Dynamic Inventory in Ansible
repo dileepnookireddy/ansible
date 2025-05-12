@@ -87,3 +87,5 @@ ansible-inventory -i k8s_inventory.yml --graph
    2.  Run ansible-inventory to see dynamic hosts.
    3.  Use it in playbooks with -i dynamic_inventory_source.
 
+---------------------------------------------------------------------
+
