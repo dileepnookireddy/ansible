@@ -1,4 +1,4 @@
-JSON (JavaScript Object Notation) and its use in Ansible Dynamic Inventory (and general DevOps/Automation).
+GJSON (JavaScript Object Notation) and its use in Ansible Dynamic Inventory (and general DevOps/Automation).
 
 ✅ What is JSON?
   1. JSON is a lightweight data interchange format.
@@ -485,4 +485,121 @@ EC2 Plugin	  -->   99% use cases for AWS, production setups
 
 -----------------------------------------------------------------
 
+ Let’s create a GitHub-ready Ansible Project Folder Structure with Dynamic EC2 Inventory, Best Practices, and CI/CD ready format.
+
+
+✅ Ansible Project Folder Structure (Best Practice)
+
+practicedevops-ansible/
+├── ansible.cfg
+├── inventory/
+│   └── aws_ec2.yml              # Dynamic Inventory config (EC2 plugin)
+├── group_vars/
+│   └── all.yml                  # Global variables
+├── host_vars/
+│   └── 10.0.1.12.yml            # Host-specific variables (optional)
+├── playbooks/
+│   └── site.yml                 # Main playbook
+│   └── webservers.yml           # Role-specific playbook
+├── roles/
+│   └── webserver/
+│       ├── tasks/
+│       │   └── main.yml         # Tasks for webserver
+│       ├── handlers/
+│       │   └── main.yml         # Handlers for webserver
+│       ├── templates/
+│       │   └── nginx.conf.j2    # Jinja2 templates
+│       └── files/
+│           └── index.html       # Static files
+├── requirements.yml             # Galaxy roles/collections
+├── ci-cd/
+│   └── ansible-lint.yml         # Linting config for CI/CD
+│   └── github-actions.yml       # GitHub Actions workflow file
+└── README.md                    # Documentation
+
+✅ Key Files Explained
+🔹 ansible.cfg
+
+[defaults]
+inventory = ./inventory/aws_ec2.yml
+remote_user = ec2-user
+host_key_checking = False
+retry_files_enabled = False
+
+🔹 inventory/aws_ec2.yml
+
+plugin: aws_ec2
+regions:
+  - us-east-1
+filters:
+  instance-state-name: running
+hostnames:
+  - private-ip-address
+keyed_groups:
+  - key: tags.Environment
+compose:
+  ansible_host: private_ip_address
+
+🔹 group_vars/all.yml
+ntp_server: time.amazon.com
+
+🔹 playbooks/site.yml
+
+- name: Apply common configurations
+  hosts: all
+  roles:
+    - webserver
+
+🔹 roles/webserver/tasks/main.yml
+
+- name: Install NGINX
+  yum:
+    name: nginx
+    state: present
+
+- name: Deploy index.html
+  copy:
+    src: index.html
+    dest: /usr/share/nginx/html/index.html
+
+- name: Start NGINX
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+✅ CI/CD with GitHub Actions Example
+🔹 .github/workflows/ansible-ci.yml
+
+name: Ansible CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Ansible & Lint
+        run: |
+          pip install ansible ansible-lint boto3
+      - name: Lint Playbooks
+        run: ansible-lint playbooks/
+
+✅ How it Works
+    1. Inventory auto-discovers EC2 instances.
+    2. Playbooks apply roles dynamically.
+    3. CI/CD (GitHub Actions) lints playbooks on every PR.
+    4. Clean, modular structure for team collaboration.
+
+✅ Optional Enhancements
+✅ Add terraform/ folder for Infra provisioning
+✅ Add molecule/ for role testing
+✅ Add Vault for encrypted secrets
+
+-------------------------------------------------------------------
 
