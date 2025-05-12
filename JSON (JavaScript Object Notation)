@@ -412,4 +412,77 @@ ansible-inventory -i ./aws_ec2_inventory.py --graph
 
 Now let’s do it the official & production-ready way using the Ansible EC2 Dynamic Inventory Plugin (no custom scripts, just YAML config).
 
+✅ EC2 Dynamic Inventory using Ansible Plugin (Best Practice)
+
+✅ Step 1: Prerequisites
+
+Make sure these are installed:
+
+pip install boto3 botocore
+ansible --version  # Should be >= 2.9
+
+✅ Ensure AWS credentials are configured:
+
+aws configure
+Or via environment variables/IAM role.
+
+✅ Step 2: Create EC2 Inventory File (YAML Plugin)
+
+Create a file: aws_ec2.yml
+
+plugin: aws_ec2
+regions:
+  - us-east-1                # <-- your region
+filters:
+  instance-state-name: running
+hostnames:
+  - private-ip-address        # or 'public-ip-address' if needed
+keyed_groups:
+  - key: tags.Environment     # Grouping by Environment tag (dev/stage/prod)
+  - key: instance_type        # Optional: group by instance type
+compose:
+  ansible_host: private_ip_address
+
+✅ Step 3: Test the Inventory
+Run this command to see dynamic inventory:
+ansible-inventory -i aws_ec2.yml --list
+
+✅ To visualize in tree form:
+ansible-inventory -i aws_ec2.yml --graph
+🔹 Example Output:
+@all:
+  |--@Environment_dev:
+  |  |--10.0.1.12
+  |--@Environment_prod:
+  |  |--10.0.1.13
+
+✅ Step 4: Use in Playbook
+Run Ansible playbooks like this:
+ansible-playbook -i aws_ec2.yml site.yml
+Or ad-hoc command:
+ansible -i aws_ec2.yml all -m ping
+
+✅ Benefits of EC2 Plugin
+✅ No custom scripts
+✅ Official, well-maintained by Ansible
+✅ Supports advanced filters (VPC, tags, security groups)
+✅ Auto-syncs with AWS
+✅ Supports public & private IPs
+✅ Groups by tags, types, AZ, etc.
+
+✅ Bonus (Advanced Filters Example)
+You can filter more specifically:
+
+filters:
+  tag:Project: myapp
+  instance-state-name: running
+
+✅ Summary
+
+Method       --      Best for
+Custom Script -->   Very custom logic, complex APIs
+EC2 Plugin	  -->   99% use cases for AWS, production setups
+
+-----------------------------------------------------------------
+
 
