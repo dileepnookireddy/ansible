@@ -84,3 +84,111 @@ yq -o=yaml input.json > output.yml
   2. Ansible dynamic inventories rely on JSON structure.
   3. Simple scripts or cloud plugins can generate JSON inventories.
 
+----------------------------------------------------
+
+Let’s build a Custom Dynamic Inventory Script in Python that outputs JSON for Ansible.
+
+✅ Goal
+    We’ll create a script that:
+     1. Dynamically builds inventory data.
+     2. Outputs valid JSON.
+     3. Can be used with Ansible's -i option.
+
+✅ Step-by-Step Example
+🔹 1. Create Python Script: custom_inventory.py
+
+#!/usr/bin/env python3
+import json
+import sys
+
+# Example dynamic data (can be from a DB, API, etc.)
+inventory = {
+    "webservers": {
+        "hosts": ["192.168.56.10", "192.168.56.11"],
+        "vars": {
+            "ansible_user": "ubuntu"
+        }
+    },
+    "dbservers": {
+        "hosts": ["192.168.56.20"],
+        "vars": {
+            "ansible_user": "postgres"
+        }
+    },
+    "_meta": {
+        "hostvars": {
+            "192.168.56.10": {"env": "dev"},
+            "192.168.56.11": {"env": "stage"},
+            "192.168.56.20": {"env": "prod"}
+        }
+    }
+}
+
+# Check for --list argument (Ansible requires this for dynamic inventory)
+if len(sys.argv) == 2 and sys.argv[1] == '--list':
+    print(json.dumps(inventory, indent=2))
+else:
+    print(json.dumps({}))
+
+🔹 2. Make It Executable
+chmod +x custom_inventory.py
+
+🔹 3. Test It
+./custom_inventory.py --list
+
+Expected output:
+
+{
+  "webservers": {
+    "hosts": [
+      "192.168.56.10",
+      "192.168.56.11"
+    ],
+    "vars": {
+      "ansible_user": "ubuntu"
+    }
+  },
+  "dbservers": {
+    "hosts": [
+      "192.168.56.20"
+    ],
+    "vars": {
+      "ansible_user": "postgres"
+    }
+  },
+  "_meta": {
+    "hostvars": {
+      "192.168.56.10": {
+        "env": "dev"
+      },
+      "192.168.56.11": {
+        "env": "stage"
+      },
+      "192.168.56.20": {
+        "env": "prod"
+      }
+    }
+  }
+}
+
+🔹 4. Use With Ansible
+ansible-inventory -i ./custom_inventory.py --graph
+
+Example output:
+@all:
+  |--@dbservers:
+  |  |--192.168.56.20
+  |--@webservers:
+  |  |--192.168.56.10
+  |  |--192.168.56.11
+
+✅ Explanation
+    1. Script outputs JSON in Ansible inventory format.
+    2. Uses --list argument (required by Ansible).
+    3. Can be extended to fetch data from APIs, databases, cloud services, etc.
+
+✅ Real-World Usage
+    1. Dynamic Inventory for Docker containers, Kubernetes Pods, Cloud VMs.
+    2. Perfect for ephemeral infrastructure in DevOps.
+
+
