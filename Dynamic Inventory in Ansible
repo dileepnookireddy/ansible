@@ -1,11 +1,89 @@
 ✅ What is Dynamic Inventory in Ansible?
 
 Static Inventory = Hardcoded list of hosts in hosts or inventory file.
-Dynamic Inventory = Inventory generated dynamically from a source like:
 
+Dynamic Inventory = Inventory generated dynamically from a source like:
 Cloud Providers (AWS, Azure, GCP)
 Kubernetes
 Databases, CMDB
 Custom scripts or APIs
-
 🔹 Useful when your infrastructure is dynamic, like in Cloud/DevOps.
+
+✅ How Dynamic Inventory Works
+1. Ansible calls a script, plugin, or API to get inventory data on-demand.
+2. Returns JSON format with host/group info.
+3. Ansible uses this data in playbooks.
+
+✅ Example 1: AWS EC2 Dynamic Inventory (Using Plugin)
+🔹 Step 1: Enable EC2 Plugin
+Create aws_ec2.yml inventory file:
+plugin: aws_ec2
+regions:
+  - us-east-1
+filters:
+  instance-state-name: running
+keyed_groups:
+  - key: tags.Name
+hostnames:
+  - private-ip-address
+🔹 Make sure you have:
+pip install boto3 botocore
+AWS credentials from environment variables or ~/.aws/credentials.
+
+🔹 Step 2: Run with Dynamic Inventory
+ansible-inventory -i aws_ec2.yml --graph
+Expected output:
+@all:
+  |--@web-servers:
+  |    |--10.0.1.12
+  |    |--10.0.1.13
+
+✅ Example 2: Dynamic Inventory with Custom Python Script
+
+Write a custom script custom_inventory.py:
+
+#!/usr/bin/env python3
+import json
+
+inventory = {
+    "all": {
+        "hosts": ["server1", "server2"],
+        "vars": {
+            "ansible_user": "ubuntu"
+        }
+    }
+}
+
+print(json.dumps(inventory))
+
+Make it executable:
+chmod +x custom_inventory.py
+
+Run it:
+ansible-inventory -i ./custom_inventory.py --list
+
+
+✅ Example 3: Kubernetes Dynamic Inventory
+
+Using the community.kubernetes plugin:
+
+plugin: kubernetes.core.k8s
+api_key: ~/.kube/config
+kind: Pod
+namespace: default
+
+Then run:
+
+ansible-inventory -i k8s_inventory.yml --graph
+
+✅ Benefits of Dynamic Inventory
+   1. No need to manually update hosts.
+   2. Auto-sync with cloud infra.
+   3. Great for auto-scaling groups, Kubernetes clusters.
+   4. Ideal for CI/CD pipelines.
+
+✅ Summary Flow
+   1.  Define dynamic inventory source (script/plugin/cloud API).
+   2.  Run ansible-inventory to see dynamic hosts.
+   3.  Use it in playbooks with -i dynamic_inventory_source.
+
