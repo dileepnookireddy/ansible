@@ -150,6 +150,7 @@ Use directory structure:
 group_vars/dev/secrets.yml
 group_vars/staging/secrets.yml
 group_vars/prod/secrets.yml
+
 Ansible automatically loads vars from group_vars based on inventory.
 
 ✅ Seummary:
