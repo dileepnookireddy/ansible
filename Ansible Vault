@@ -91,4 +91,69 @@ Never hardcode sensitive data in playbooks.
 Use --vault-password-file for automation in CI/CD.
 Store secrets encrypted in Git safely.
 
+-------------------------
+✅ Use Case: Multiple Vaults (dev, staging, prod)
+You want:
+Separate secrets for dev, staging, prod.
+Different passwords for each.
+Secure automation (CI/CD ready).
+-------------------------
+
+🔹 Step 1: Create Vault Files per Environment
+
+ansible-vault encrypt dev-secrets.yml
+ansible-vault encrypt staging-secrets.yml
+ansible-vault encrypt prod-secrets.yml
+
+Inside each file, you can have:
+
+db_user: admin
+db_password: devSecretPassw0rd   # for dev-secrets.yml
+For staging/prod, you'd have different passwords.
+
+🔹 Step 2: Create a Vault Password File for Each Environment
+Create files:
+
+echo "dev-vault-password" > vault-dev-pass.txt
+echo "staging-vault-password" > vault-staging-pass.txt
+echo "prod-vault-password" > vault-prod-pass.txt
+Secure them:
+chmod 600 vault-*-pass.txt
+
+🔹 Step 3: Example Playbook Using Environment Secrets
+Example playbook: deploy.yml
+---
+- name: Deploy using environment secrets
+  hosts: localhost
+  vars_files:
+    - "{{ secrets_file }}"
+
+  tasks:
+    - name: Show DB Credentials for environment
+      debug:
+        msg: "Using DB user '{{ db_user }}' and password '{{ db_password }}' for {{ env_name }}"
+
+🔹 Step 4: Run Playbook for Different Environments
+
+For dev:
+ansible-playbook deploy.yml --extra-vars "secrets_file=dev-secrets.yml env_name=dev" --vault-password-file vault-dev-pass.txt
+
+For staging:
+ansible-playbook deploy.yml --extra-vars "secrets_file=staging-secrets.yml env_name=staging" --vault-password-file vault-staging-pass.txt
+
+For prod:
+ansible-playbook deploy.yml --extra-vars "secrets_file=prod-secrets.yml env_name=prod" --vault-password-file vault-prod-pass.txt
+
+🧠 Pro Tip:
+Use directory structure:
+
+group_vars/dev/secrets.yml
+group_vars/staging/secrets.yml
+group_vars/prod/secrets.yml
+Ansible automatically loads vars from group_vars based on inventory.
+
+✅ Seummary:
+Diffrent vault files for each environment.
+Different vault passwords.
+Easy switching via --extra-vars and --vault-password-file.
 
