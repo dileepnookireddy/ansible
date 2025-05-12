@@ -602,4 +602,28 @@ jobs:
 ✅ Add Vault for encrypted secrets
 
 -------------------------------------------------------------------
+get started with Ansible's dynamic inventory for AWS EC2, here's a GitHub repository that demonstrates this setup:
 
+📁 shamimice03/ansible-aws-ec2-dynamic-inventory
+This repository provides a practical implementation of Ansible's dynamic inventory using the aws_ec2 plugin. It includes:
+
+Dynamic Inventory Configuration: An aws_ec2.yaml file configured to fetch EC2 instances dynamically.
+
+Playbooks: Sample playbooks like ping_test_playbook.yaml to test connectivity and erase_ssh_key.yaml for managing SSH keys.
+GitHub
+
+Group Variables: A group_vars directory to define variables applicable to groups of hosts.
+
+Terraform Integration: An infra-using-terraform directory showcasing how to provision infrastructure using Terraform, which can be integrated with Ansible for configuration management.
+GitHub
+
+This setup is beneficial for environments where EC2 instances are frequently added or removed, ensuring that Ansible always has an up-to-date list of hosts.
+
+For a more detailed guide on setting up Ansible's dynamic inventory with AWS EC2, you can refer to the official Ansible documentation:
+
+Ansible AWS EC2 Dynamic Inventory Plugin Documentation
+
+This documentation provides comprehensive information on configuring the plugin, including filtering instances, grouping, and setting host variables.
+
+
+-----------------------------------END----------------------------------
