@@ -1,0 +1,78 @@
+✅ What are Plugins in Ansible?
+Ansible plugins are modules that extend Ansible’s core functionality.
+They help control how Ansible behaves during execution.
+
+🔹 They are not tasks but help Ansible with:
+Connections
+Lookups
+Filters
+Callbacks
+Inventory
+Strategies, etc.
+
+✅ Types of Plugins in Ansible
+
+Plugin Type               	Purpose
+Connection Plugins	        How Ansible connects to targets (SSH, WinRM, network_cli, docker, etc.)
+Inventory Plugins	          Dynamically load inventory (AWS, Azure, Kubernetes, scripts)
+Lookup Plugins	            Fetch external data (env vars, files, secrets)
+Filter Plugins	            Modify/format data in Jinja2 templates
+Callback Plugins	          Customize output format (json, yaml, minimal, custom reports)
+Action Plugins	            Modify how modules run in tasks
+Cache Plugins	              Cache facts/inventory data (Redis, JSON file, memcached)
+Vars Plugins	              Load variables dynamically
+Strategy Plugins	          Control task execution flow (linear, free, mitogen)
+Test Plugins	              Used for condition testing in Jinja2 templates
+
+
+
+✅ Examples of Plugins
+
+🔹 1. Connection Plugin Example
+Defines how to connect:
+- name: Run command via network_cli plugin
+  hosts: routers
+  connection: network_cli
+  tasks:
+    - command: show version
+
+🔹 2. Lookup Plugin Example
+Fetch content from a file:
+vars:
+  secret_key: "{{ lookup('file', '/etc/secret.key') }}"
+
+🔹 3. Filter Plugin Example
+Modify data:
+vars:
+  mylist: [1, 2, 3, 4]
+tasks:
+  - debug:
+      msg: "{{ mylist | reverse }}"
+
+🔹 4. Callback Plugin Example
+Use minimal output:
+ANSIBLE_STDOUT_CALLBACK=minimal ansible-playbook playbook.yml
+
+🔹 5. Strategy Plugin Example
+Run tasks in parallel/free mode:
+ansible-playbook playbook.yml -e "strategy=free"
+
+✅ How to List Available Plugins
+
+🔹 To list lookup plugins:
+ansible-doc -t lookup -l
+
+🔹 To list connection plugins:
+ansible-doc -t connection -l
+
+🔹 To list filter plugins:
+ansible-doc -t filter -l
+
+🔹 To list all plugin types:
+ansible-doc -t <plugin_type> -l
+
+✅ Key Points
+    1. Plugins control Ansible's internal behavior.
+    2. They are used for connections, data lookups, formatting, caching, strategies, etc.
+    3. Very important in DevOps automation & enterprise deployments.
+
